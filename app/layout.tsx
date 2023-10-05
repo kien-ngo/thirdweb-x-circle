@@ -5,9 +5,10 @@ import { Inter } from "next/font/google";
 import SupabaseProvider from "@/src/supabase/SupabaseProvider";
 import Menu from "@/src/components/Menu";
 import AuthComponent from "@/src/components/Auth";
-import { TGeneratedWallet, authString } from "@/pages/api/webhook_userCreated";
+import { TGeneratedWallet } from "@/pages/api/webhook_userCreated";
 import WalletProvider from "@/src/components/WalletProvider";
 import ThirdwebProviderWrapper from "@/src/components/ThirdwebProviderWrapper";
+import { getWallets } from "@/src/utils/api";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -33,21 +34,9 @@ export default async function RootLayout({
     /**
      * Calling this endpoint is not efficient
      * Ideally we would need a way to get a wallet based on refId, but seems like Circle doesn't have such endpoint atm
+     * Other solution is to keep a separate record of that in the database (Supabase, for example)
      */
-    const data = await fetch(
-      `https://api.circle.com/v1/w3s/wallets?blockchain=AVAX-FUJI&walletSetId=${process.env.WALLET_SET_ID}&pageSize=50`,
-      {
-        method: "GET",
-        headers: {
-          accept: "application/json",
-          authorization: authString,
-        },
-      }
-    )
-      .then((r) => r.json())
-      .catch((err) => console.log(err));
-    // console.log(data);
-    const wallets: TGeneratedWallet[] = data.data.wallets;
+    const wallets: TGeneratedWallet[] = await getWallets();
     // console.log({ wallets });
     wallet = wallets.find((item) => item.refId === refId);
   }

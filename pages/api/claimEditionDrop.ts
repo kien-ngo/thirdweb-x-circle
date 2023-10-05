@@ -1,10 +1,8 @@
-import { createServerClient } from "@/src/supabase/supabase-server";
 import {
   AUTH_STRING,
   getEntitySecretCipherText,
   getIdempotencyKey,
 } from "@/src/utils/api";
-import { parseEther } from "ethers/lib/utils";
 import { NextApiRequest, NextApiResponse } from "next";
 
 const CONTRACT_ADDRESS = "0x588E97e302F4bB047aDAdAB6424d06D16ebd1370"; // Change this to your own contract address
@@ -50,10 +48,10 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
         body: JSON.stringify({
           feeLevel: "MEDIUM",
           abiParameters: [
-            "0x52abf5fae2ba8e885afcd5b232897499ed692825",
+            "0x52abf5fae2ba8e885afcd5b232897499ed692825", // hard-coded for testing
             0,
             1,
-            "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE",
+            "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE", // native token
             0,
             JSON.stringify({
               proof: [
@@ -68,7 +66,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
           abiFunctionSignature: functionSignature,
           contractAddress: CONTRACT_ADDRESS,
           entitySecretCipherText,
-          walletId: "d15fb311-b298-4a74-9a57-6b065f1e3142",
+          walletId: "d15fb311-b298-4a74-9a57-6b065f1e3142", // hard-coded for testing
           idempotencyKey,
         }),
       }

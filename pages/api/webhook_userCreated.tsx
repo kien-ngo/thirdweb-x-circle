@@ -1,4 +1,5 @@
 import {
+  CIRCLE_BASE_API_URL,
   getEntitySecretCipherText,
   getIdempotencyKey,
   getPublicKey,
@@ -23,10 +24,10 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
       getEntitySecretCipherText(),
       getIdempotencyKey(),
     ]);
-    
+
     console.log({ entitySecretCipherText });
     const data: { data: { wallets: TGeneratedWallet[] } } = await fetch(
-      "https://api.circle.com/v1/w3s/developer/wallets",
+      `${CIRCLE_BASE_API_URL}/developer/wallets`,
       {
         method: "POST",
         headers: {
@@ -64,7 +65,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
       sdk.wallet.transfer(walletAddress, "0.01"),
       // Update the refId of this wallet to the user's UID - mandatory
       // Since we need to know which wallet belong to which user
-      fetch(`https://api.circle.com/v1/w3s/wallets/${walletId}`, {
+      fetch(`${CIRCLE_BASE_API_URL}/wallets/${walletId}`, {
         method: "PUT",
         headers: {
           accept: "application/json",
