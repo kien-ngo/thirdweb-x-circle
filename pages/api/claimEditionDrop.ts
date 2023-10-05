@@ -1,35 +1,23 @@
-import {
-  AUTH_STRING,
-  getEntitySecretCipherText,
-  getIdempotencyKey,
-} from "@/src/utils/api";
+import { AUTH_STRING, CONTRACT_ADDRESS } from "@/src/consts";
+import { createServerClient } from "@/src/supabase/supabase-server";
+import { getEntitySecretCipherText, getIdempotencyKey } from "@/src/utils/api";
 import { NextApiRequest, NextApiResponse } from "next";
-
-const CONTRACT_ADDRESS = "0x588E97e302F4bB047aDAdAB6424d06D16ebd1370"; // Change this to your own contract address
 
 // Hard-coded. This should be generated dynamically from the contract's abi
 const functionSignature =
-  "claim(address,uint256,uint256,address,uint256,((bytes32[],uint256,uint256,address)),bytes)";
+  "claim(address,uint256,uint256,address,uint256,(bytes32[],uint256,uint256,address),bytes)";
 
 export default async (req: NextApiRequest, res: NextApiResponse) => {
-  // if (req.method !== "POST") {
-  //   res.status(405).json({
-  //     success: false,
-  //     error: { message: "Method not allowed" },
-  //   });
-  // }
-
-  // [Auth]
-  // const supabase = createServerClient();
-  // const {
-  //   data: { user },
-  // } = await supabase.auth.getUser();
-  // if (!user) {
-  //   res.status(405).send("Unauthorized");
-  //   return;
-  // }
-
   try {
+    // [Auth]
+    // const supabase = createServerClient();
+    // const {
+    //   data: { user },
+    // } = await supabase.auth.getUser();
+    // if (!user) {
+    //   res.status(405).send("Unauthorized");
+    //   return;
+    // }
     const [entitySecretCipherText, idempotencyKey] = await Promise.all([
       getEntitySecretCipherText(),
       getIdempotencyKey(),
@@ -48,20 +36,20 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
         body: JSON.stringify({
           feeLevel: "MEDIUM",
           abiParameters: [
-            "0x52abf5fae2ba8e885afcd5b232897499ed692825", // hard-coded for testing
-            0,
-            1,
-            "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE", // native token
-            0,
-            JSON.stringify({
-              proof: [
+            "0x52abf5fae2ba8e885afcd5b232897499ed692825", // receiver
+            0, // tokenId
+            1, // quantity
+            "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE", // currency
+            0, // pricePerToken
+            [
+              [
                 "0x0000000000000000000000000000000000000000000000000000000000000000",
-              ],
-              quantityLimitPerWallet: 10,
-              pricePerToken: 0,
-              currency: "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE",
-            }),
-            "0x",
+              ], // proof
+              10, // quantityLimitPerWallet
+              0, // pricePerToken
+              "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE", // currency
+            ],
+            "0x", // _data
           ],
           abiFunctionSignature: functionSignature,
           contractAddress: CONTRACT_ADDRESS,
@@ -71,9 +59,30 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
         }),
       }
     ).then((r) => r.json());
-    return res.json(data);
+    // let data_sample = {
+    //   data: {
+    //     id: "5f59373c-bf12-590e-973d-ec86268c9333",
+    //     state: "INITIATED",
+    //   },
+    // };
+    console.log("Mint transaction");
+    console.log(data);
+    const circleTxId = data.data.id;
+    return res.json({ success: true, circleTxId });
   } catch (err) {
     console.log(err);
     return res.send(err);
   }
 };
+
+/**
+ * [
+      'address',
+      'tokenId',
+      'uint256',
+      'address',
+      'uint256',
+      '[[bytes32, bytes32, bytes32], uint256, uint256, address]',
+      'bytes'
+    ]
+ */

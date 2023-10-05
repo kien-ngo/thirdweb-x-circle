@@ -1,12 +1,7 @@
-import {
-  CIRCLE_BASE_API_URL,
-  getEntitySecretCipherText,
-  getIdempotencyKey,
-  getPublicKey,
-} from "@/src/utils/api";
+import { AUTH_STRING, CIRCLE_BASE_API_URL } from "@/src/consts";
+import { getEntitySecretCipherText, getIdempotencyKey } from "@/src/utils/api";
 import { ThirdwebSDK } from "@thirdweb-dev/sdk";
 import { NextApiRequest, NextApiResponse } from "next";
-export const authString = `Bearer ${process.env.CIRCLE_API_KEY}`;
 
 export default async (req: NextApiRequest, res: NextApiResponse) => {
   if (req.method !== "POST") {
@@ -31,7 +26,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
       {
         method: "POST",
         headers: {
-          Authorization: authString,
+          Authorization: AUTH_STRING,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
@@ -60,7 +55,6 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
       /**
        * [Demo only]: Send some testnet funds to the new wallet
        * For the demo purpose we are going to send to AVAX-FUJI only
-       * Why AVAX FUJI? Avalanche is the best
        */
       sdk.wallet.transfer(walletAddress, "0.01"),
       // Update the refId of this wallet to the user's UID - mandatory
@@ -70,7 +64,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
         headers: {
           accept: "application/json",
           "content-type": "application/json",
-          Authorization: authString,
+          Authorization: AUTH_STRING,
         },
         body: JSON.stringify({
           name: email,

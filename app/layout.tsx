@@ -31,6 +31,7 @@ export default async function RootLayout({
   if (session) {
     // console.log({ session });
     const refId = session.user.id;
+    console.log({ refId });
     /**
      * Calling this endpoint is not efficient
      * Ideally we would need a way to get a wallet based on refId, but seems like Circle doesn't have such endpoint atm
