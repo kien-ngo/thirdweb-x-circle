@@ -7,4 +7,5 @@ Workflow:
 3. <Demo purpose only> Send that user some testnet tokens using thirdweb SDK
 
    
-![image](https://github.com/kien-ngo/circle-x-thirdweb/assets/26052673/664c3f71-37e5-4ed9-8cad-c21452e371f1)
+![image](https://github.com/kien-ngo/thirdweb-x-circle/assets/26052673/86dd7afa-3ab8-4914-8541-046183df1ecb)
+
