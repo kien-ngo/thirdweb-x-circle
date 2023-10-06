@@ -50,7 +50,7 @@ export const getWallets = async () => {
   )
     .then((r) => r.json())
     .catch((err) => console.log(err));
-  console.log('get wallet: ', data);
+  // console.log("get wallet: ", data);
   const wallets: TGeneratedWallet[] = data.data.wallets;
   return wallets;
 };
@@ -59,8 +59,9 @@ export const getTransaction = async (
   id: string,
   type: "OUTBOUND" | "INBOUND"
 ) => {
+  const _type = type ? `?txType=${type}` : "";
   const data = await fetch(
-    `${CIRCLE_BASE_API_URL}/transactions/${id}?txType=${type}`,
+    `${CIRCLE_BASE_API_URL}/transactions/${id}${_type}`,
     {
       headers: {
         accept: "application/json",

@@ -1,4 +1,3 @@
-import { createServerClient } from "@/src/supabase/supabase-server";
 import "./globals.css";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
@@ -9,6 +8,8 @@ import { TGeneratedWallet } from "@/pages/api/webhook_userCreated";
 import WalletProvider from "@/src/components/WalletProvider";
 import ThirdwebProviderWrapper from "@/src/components/ThirdwebProviderWrapper";
 import { getWallets } from "@/src/utils/api";
+import { cookies } from "next/headers";
+import { createServerComponentClient } from "@supabase/auth-helpers-nextjs";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -18,12 +19,14 @@ export const metadata: Metadata = {
     "Mint NFT from a thirdweb contract with programable wallet from Circle",
 };
 
+export const dynamic = "force-dynamic";
+
 export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const supabase = createServerClient();
+  const supabase = createServerComponentClient({ cookies });
   const {
     data: { session },
   } = await supabase.auth.getSession();
@@ -31,7 +34,7 @@ export default async function RootLayout({
   if (session) {
     // console.log({ session });
     const refId = session.user.id;
-    console.log({ refId });
+    // console.log({ refId });
     /**
      * Calling this endpoint is not efficient
      * Ideally we would need a way to get a wallet based on refId, but seems like Circle doesn't have such endpoint atm

@@ -9,7 +9,7 @@ export default function NativeBalance({
 }: {
   walletAddress: string;
 }) {
-  const [balance, setBalance] = useState<string>("Loading...");
+  const [balance, setBalance] = useState<string>("");
   const sdk = useSDK();
   useEffect(() => {
     if (!sdk) return;
@@ -28,7 +28,10 @@ export default function NativeBalance({
   return (
     <li>
       <a>
-        Balance: <b className="text-green-500">{balance} AVAX</b>
+        Balance:{" "}
+        <b className="text-green-500">
+          {balance ? `${balance} AVAX` : "Loading..."}
+        </b>
       </a>
     </li>
   );

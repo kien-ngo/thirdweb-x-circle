@@ -50,9 +50,7 @@ export default function Menu({ session }: { session: MaybeSession }) {
                         <a>Address: {truncateEvmAddress(wallet.address)}</a>
                       </li>
                       <li>
-                        <a href="/my-nfts">
-                          My NFTs (<NftBalance walletAddress={wallet.address} />)
-                        </a>
+                        <a href="/my-nfts">My NFTs</a>
                       </li>
                     </>
                   )}

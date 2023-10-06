@@ -1,23 +1,49 @@
+"use server";
+
 import { AUTH_STRING, CONTRACT_ADDRESS } from "@/src/consts";
-import { createServerClient } from "@/src/supabase/supabase-server";
-import { getEntitySecretCipherText, getIdempotencyKey } from "@/src/utils/api";
+import {
+  getEntitySecretCipherText,
+  getIdempotencyKey,
+  getWallets,
+} from "@/src/utils/api";
 import { NextApiRequest, NextApiResponse } from "next";
+import { createPagesServerClient } from "@supabase/auth-helpers-nextjs";
+import { TGeneratedWallet } from "./webhook_userCreated";
+import { NATIVE_TOKEN_ADDRESS } from "@thirdweb-dev/sdk";
 
 // Hard-coded. This should be generated dynamically from the contract's abi
 const functionSignature =
   "claim(address,uint256,uint256,address,uint256,(bytes32[],uint256,uint256,address),bytes)";
 
 export default async (req: NextApiRequest, res: NextApiResponse) => {
+  if (req.method !== "POST") {
+    res.status(405).json({
+      success: false,
+      error: { message: "Method not allowed" },
+    });
+  }
+  const { tokenId } = JSON.parse(req.body);
+  console.log({ tokenId });
+  // Todo: Validate tokenId
+
   try {
     // [Auth]
-    // const supabase = createServerClient();
-    // const {
-    //   data: { user },
-    // } = await supabase.auth.getUser();
-    // if (!user) {
-    //   res.status(405).send("Unauthorized");
-    //   return;
-    // }
+    const supabase = createPagesServerClient({ req, res });
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) {
+      res.status(405).send("Unauthorized");
+      return;
+    }
+    // console.log(user);
+
+    const wallets: TGeneratedWallet[] = await getWallets();
+    // console.log({ wallets });
+    const wallet = wallets.find((item) => item.refId === user.id);
+    if (!wallet || !wallet.address) throw Error("Could not fetch user wallet");
+    // console.log(wallet);
+
     const [entitySecretCipherText, idempotencyKey] = await Promise.all([
       getEntitySecretCipherText(),
       getIdempotencyKey(),
@@ -36,10 +62,10 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
         body: JSON.stringify({
           feeLevel: "MEDIUM",
           abiParameters: [
-            "0x52abf5fae2ba8e885afcd5b232897499ed692825", // receiver
-            0, // tokenId
+            wallet.address, // receiver
+            tokenId, // tokenId
             1, // quantity
-            "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE", // currency
+            NATIVE_TOKEN_ADDRESS, // currency
             0, // pricePerToken
             [
               [
@@ -47,7 +73,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
               ], // proof
               10, // quantityLimitPerWallet
               0, // pricePerToken
-              "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE", // currency
+              NATIVE_TOKEN_ADDRESS, // currency
             ],
             "0x", // _data
           ],
@@ -71,7 +97,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
     return res.json({ success: true, circleTxId });
   } catch (err) {
     console.log(err);
-    return res.send(err);
+    return res.json({ success: false, error: err });
   }
 };
 

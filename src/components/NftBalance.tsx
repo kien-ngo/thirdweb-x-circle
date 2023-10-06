@@ -3,14 +3,16 @@ import { CONTRACT_ADDRESS } from "../consts";
 
 export default function NftBalance({
   walletAddress,
+  tokenId,
 }: {
   walletAddress: string;
+  tokenId: number;
 }) {
   const { contract } = useContract(CONTRACT_ADDRESS);
   const { data, isLoading, error } = useNFTBalance(
     contract,
     walletAddress,
-    "0"
+    tokenId
   );
   return <>{data ? `${data.toString()}` : ""}</>;
 }
