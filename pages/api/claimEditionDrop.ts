@@ -80,7 +80,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
           abiFunctionSignature: functionSignature,
           contractAddress: CONTRACT_ADDRESS,
           entitySecretCipherText,
-          walletId: "d15fb311-b298-4a74-9a57-6b065f1e3142", // hard-coded for testing
+          walletId: wallet.id,
           idempotencyKey,
         }),
       }
