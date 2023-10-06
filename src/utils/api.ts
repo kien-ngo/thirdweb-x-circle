@@ -50,7 +50,6 @@ export const getWallets = async () => {
   )
     .then((r) => r.json())
     .catch((err) => console.log(err));
-  // console.log("get wallet: ", data);
   const wallets: TGeneratedWallet[] = data.data.wallets;
   return wallets;
 };
@@ -72,7 +71,6 @@ export const getTransaction = async (
   )
     .then((r) => r.json())
     .catch((err) => console.log(err));
-  console.log(data);
   const transaction = data.data.transaction;
   return transaction;
 

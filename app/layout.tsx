@@ -32,16 +32,13 @@ export default async function RootLayout({
   } = await supabase.auth.getSession();
   let wallet: TGeneratedWallet | undefined;
   if (session) {
-    // console.log({ session });
     const refId = session.user.id;
-    // console.log({ refId });
     /**
      * Calling this endpoint is not efficient
      * Ideally we would need a way to get a wallet based on refId, but seems like Circle doesn't have such endpoint atm
      * Other solution is to keep a separate record of that in the database (Supabase, for example)
      */
     const wallets: TGeneratedWallet[] = await getWallets();
-    // console.log({ wallets });
     wallet = wallets.find((item) => item.refId === refId);
   }
   return (

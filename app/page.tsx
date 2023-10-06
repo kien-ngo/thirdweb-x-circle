@@ -17,17 +17,53 @@ const tokens = [
     tokenId: 1,
     image: "/circle_logo.png",
     shadow: "shadow-[0_20px_50px_rgba(8,_112,_184,_0.7)]",
-    hover: "border-green-200",
+    hover: "border-green-300",
   },
 ];
 
 export default function Home() {
-  const { session, supabase } = useSupabase();
+  const { session } = useSupabase();
   const [isMinting, setIsMinting] = useState<boolean>(false);
   const [txHash, setTxHash] = useState<string>("");
   const [tokenId, setTokenId] = useState<number>(0);
   const boxShadow = tokens.find((i) => i.tokenId === tokenId)?.shadow ?? "";
   const hoverColor = tokens.find((i) => i.tokenId === tokenId)?.hover ?? "";
+
+  const mint = async () => {
+    setIsMinting(true);
+    setTxHash("");
+    const res = await fetch("/api/claimEditionDrop", {
+      method: "POST",
+      body: JSON.stringify({ tokenId }),
+    })
+      .then((r) => r.json())
+      .catch((err) => console.log(err));
+    if (!res.success) {
+      return toast(res.message ?? "Error");
+    }
+    const { circleTxId } = res;
+    const loop = setInterval(async () => {
+      const transaction = await fetch("/api/getTransaction", {
+        method: "POST",
+        body: JSON.stringify({ id: circleTxId, type: "OUTBOUND" }),
+      })
+        .then((r) => r.json())
+        .catch((err) => console.log(err));
+      if (transaction.txHash) {
+        clearInterval(loop);
+        setTxHash(transaction.txHash);
+        setIsMinting(false);
+        toast("Mint transaction sent!");
+      } else if (transaction.state === "FAILED") {
+        clearInterval(loop);
+        setIsMinting(false);
+        if (transaction.errorReason === "INSUFFICIENT_NATIVE_TOKEN") {
+          toast("FAILED: Not enough gas for transaction");
+        }
+      }
+    }, 1200);
+  };
+
   return (
     <>
       <div className="text-center text-3xl mt-20">Mint a free NFT</div>
@@ -59,45 +95,7 @@ export default function Home() {
       {session ? (
         <>
           <button
-            onClick={async () => {
-              setIsMinting(true);
-              setTxHash("");
-              const res = await fetch("/api/claimEditionDrop", {
-                method: "POST",
-                body: JSON.stringify({ tokenId }),
-              })
-                .then((r) => r.json())
-                .catch((err) => console.log(err));
-              // console.log({ res });
-              if (!res.success) {
-                return toast(res.message ?? "Error");
-              }
-              const { circleTxId } = res;
-              // console.log({ circleTxId });
-              // Fetch the transaction hash on the blockchain and return to front-end
-              const loop = setInterval(async () => {
-                const transaction = await fetch("/api/getTransaction", {
-                  method: "POST",
-                  body: JSON.stringify({ id: circleTxId, type: "OUTBOUND" }),
-                })
-                  .then((r) => r.json())
-                  .catch((err) => console.log(err));
-                // console.log("transaction client");
-                // console.log(transaction);
-                if (transaction.txHash) {
-                  clearInterval(loop);
-                  setTxHash(transaction.txHash);
-                  setIsMinting(false);
-                  toast("Mint transaction sent!");
-                } else if (transaction.state === "FAILED") {
-                  clearInterval(loop);
-                  setIsMinting(false);
-                  if (transaction.errorReason === "INSUFFICIENT_NATIVE_TOKEN") {
-                    toast("FAILED: Not enough gas for transaction");
-                  }
-                }
-              }, 1200);
-            }}
+            onClick={mint}
             className={`border-2 mx-auto mt-10 py-4 rounded-full hover:${hoverColor} w-40`}
           >
             {isMinting ? (

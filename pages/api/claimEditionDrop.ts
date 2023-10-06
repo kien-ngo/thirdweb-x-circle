@@ -23,7 +23,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
     });
   }
   const { tokenId } = JSON.parse(req.body);
-  console.log({ tokenId });
+
   // Todo: Validate tokenId
 
   try {
@@ -36,20 +36,13 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
       res.status(405).send("Unauthorized");
       return;
     }
-    // console.log(user);
-
     const wallets: TGeneratedWallet[] = await getWallets();
-    // console.log({ wallets });
     const wallet = wallets.find((item) => item.refId === user.id);
     if (!wallet || !wallet.address) throw Error("Could not fetch user wallet");
-    // console.log(wallet);
-
     const [entitySecretCipherText, idempotencyKey] = await Promise.all([
       getEntitySecretCipherText(),
       getIdempotencyKey(),
     ]);
-
-    console.log({ entitySecretCipherText, idempotencyKey });
     const data = await fetch(
       "https://api.circle.com/v1/w3s/developer/transactions/contractExecution",
       {
@@ -91,8 +84,6 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
     //     state: "INITIATED",
     //   },
     // };
-    console.log("Mint transaction");
-    console.log(data);
     const circleTxId = data.data.id;
     return res.json({ success: true, circleTxId });
   } catch (err) {

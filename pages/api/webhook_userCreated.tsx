@@ -12,15 +12,12 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
   }
   const body = req.body;
   const { id: userUid, email } = body.record;
-  console.log({ email, userUid });
   if (!userUid) return res.send("missing id");
   try {
     const [entitySecretCipherText, idempotencyKey] = await Promise.all([
       getEntitySecretCipherText(),
       getIdempotencyKey(),
     ]);
-
-    console.log({ entitySecretCipherText });
     const data: { data: { wallets: TGeneratedWallet[] } } = await fetch(
       `${CIRCLE_BASE_API_URL}/developer/wallets`,
       {
@@ -40,11 +37,8 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
     )
       .then((r) => r.json())
       .catch((err) => console.log(err));
-
-    console.log(data);
     const walletAddress = data.data.wallets[0].address;
     const walletId = data.data.wallets[0].id;
-    console.log({ walletAddress, walletId });
     const sdk = ThirdwebSDK.fromPrivateKey(
       process.env.PRIVATE_KEY!,
       "avalanche-fuji",
