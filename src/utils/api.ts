@@ -37,6 +37,16 @@ export const getIdempotencyKey = async () => {
   return uuid;
 };
 
+/**
+ * This is currently used to fetch a list of wallets from Circle DB and use the list
+ * to filter out the user's wallet based on their user ID (provided from the Auth provider, in this case, Supabase)
+ *
+ * Calling this endpoint is not efficient
+ * Ideally we would need a way to get a wallet based on refId, but seems like Circle doesn't have such endpoint atm
+ * Other solution is to keep a separate record of that in the database (Supabase, for example)
+ * but it is not as clean as using the mentioned endpoint - Supabase should just be used for Auth, this
+ * way you can use the app for any auth provider
+ */
 export const getWallets = async () => {
   const data = await fetch(
     `${CIRCLE_BASE_API_URL}/wallets?blockchain=AVAX-FUJI&walletSetId=${process.env.WALLET_SET_ID}&pageSize=50`,
@@ -73,104 +83,4 @@ export const getTransaction = async (
     .catch((err) => console.log(err));
   const transaction = data.data.transaction;
   return transaction;
-
-  /*
-      {
-    "data": {
-      "transaction": {
-        "id": "5f59373c-bf12-590e-973d-ec86268c9333",
-        "blockchain": "AVAX-FUJI",
-        "walletId": "d15fb311-b298-4a74-9a57-6b065f1e3142",
-        "sourceAddress": "0x52abf5fae2ba8e885afcd5b232897499ed692825",
-        "contractAddress": "0x588e97e302f4bb047adadab6424d06d16ebd1370",
-        "transactionType": "OUTBOUND",
-        "custodyType": "DEVELOPER",
-        "state": "COMPLETE",
-        "amounts": null,
-        "nfts": null,
-        "txHash": "0x4c8c54ecf765b543f295c4f85c18e78d529fdf0ee4f799f441dc7290494fe263",
-        "blockHash": "0x207e5f6073018ab19e90ea3217fc94e4b76d5c993307c7beeae99aa0cb32bc08",
-        "blockHeight": 26502024,
-        "networkFee": "0.00369659342",
-        "firstConfirmDate": "2023-10-05T21:04:41Z",
-        "operation": "CONTRACT_EXECUTION",
-        "feeLevel": "MEDIUM",
-        "estimatedFee": {
-          "gasLimit": "164981",
-          "baseFee": "25",
-          "priorityFee": "4.485",
-          "maxFee": "54.485"
-        },
-        "refId": "",
-        "abiFunctionSignature": "claim(address,uint256,uint256,address,uint256,(bytes32[],uint256,uint256,address),bytes)",
-        "abiParameters": [
-          "0x52abf5fae2ba8e885afcd5b232897499ed692825",
-          0,
-          1,
-          "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE",
-          0,
-          [
-            [
-              "0x0000000000000000000000000000000000000000000000000000000000000000"
-            ],
-            10,
-            0,
-            "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE"
-          ],
-          "0x"
-        ],
-        "createDate": "2023-10-05T21:04:21Z",
-        "updateDate": "2023-10-05T21:04:41Z"
-      }
-    }
-  }
-    */
 };
-
-// Example for running out of gas
-// {
-//   "data": {
-//     "transaction": {
-//       "id": "230ba4bd-8bb0-58de-ac53-7c1707adf1fc",
-//       "blockchain": "AVAX-FUJI",
-//       "walletId": "d15fb311-b298-4a74-9a57-6b065f1e3142",
-//       "sourceAddress": "0x52abf5fae2ba8e885afcd5b232897499ed692825",
-//       "contractAddress": "0x588e97e302f4bb047adadab6424d06d16ebd1370",
-//       "transactionType": "OUTBOUND",
-//       "custodyType": "DEVELOPER",
-//       "state": "FAILED",
-//       "errorReason": "INSUFFICIENT_NATIVE_TOKEN",
-//       "amounts": null,
-//       "nfts": null,
-//       "networkFee": "",
-//       "operation": "CONTRACT_EXECUTION",
-//       "feeLevel": "MEDIUM",
-//       "estimatedFee": {
-//         "gasLimit": "119817",
-//         "baseFee": "25",
-//         "priorityFee": "3.6",
-//         "maxFee": "53.6"
-//       },
-//       "refId": "",
-//       "abiFunctionSignature": "claim(address,uint256,uint256,address,uint256,(bytes32[],uint256,uint256,address),bytes)",
-//       "abiParameters": [
-//         "0x52abf5fae2ba8e885afcd5b232897499ed692825",
-//         0,
-//         1,
-//         "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE",
-//         0,
-//         [
-//           [
-//             "0x0000000000000000000000000000000000000000000000000000000000000000"
-//           ],
-//           10,
-//           0,
-//           "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE"
-//         ],
-//         "0x"
-//       ],
-//       "createDate": "2023-10-05T22:29:50Z",
-//       "updateDate": "2023-10-05T22:29:51Z"
-//     }
-//   }
-// }

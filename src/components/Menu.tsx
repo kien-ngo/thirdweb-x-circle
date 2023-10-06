@@ -6,7 +6,6 @@ import NativeBalance from "./NativeBalance";
 import { truncateEvmAddress } from "../utils/truncateEvmAddress";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import NftBalance from "./NftBalance";
 import { useCircleWallet } from "./WalletProvider";
 
 export default function Menu({ session }: { session: MaybeSession }) {

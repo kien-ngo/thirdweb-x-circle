@@ -11,6 +11,8 @@ export default function NativeBalance({
 }) {
   const [balance, setBalance] = useState<string>("");
   const sdk = useSDK();
+
+  // @thirdweb-dev/react doesn't have a hook for this yet
   useEffect(() => {
     if (!sdk) return;
     const get = async () => {
