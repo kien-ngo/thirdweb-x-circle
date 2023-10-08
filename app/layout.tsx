@@ -38,7 +38,7 @@ export default async function RootLayout({
   }
   return (
     <html lang="en" className="bg-black">
-      <body className={`${inter.className} flex flex-col`}>
+      <body className={`${inter.className} flex flex-col pb-20`}>
         <SupabaseProvider session={session}>
           <WalletProvider wallet={wallet}>
             <ThirdwebProviderWrapper thirdwebSdkChainSlug="avalanche-fuji">
