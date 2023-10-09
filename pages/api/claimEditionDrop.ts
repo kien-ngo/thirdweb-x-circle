@@ -78,12 +78,6 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
         }),
       }
     ).then((r) => r.json());
-    // let data_sample = {
-    //   data: {
-    //     id: "5f59373c-bf12-590e-973d-ec86268c9333",
-    //     state: "INITIATED",
-    //   },
-    // };
     const circleTxId = data.data.id;
     return res.json({ success: true, circleTxId });
   } catch (err) {
@@ -91,15 +85,3 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
     return res.json({ success: false, error: err });
   }
 };
-
-/**
- * [
-      'address',
-      'tokenId',
-      'uint256',
-      'address',
-      'uint256',
-      '[[bytes32, bytes32, bytes32], uint256, uint256, address]',
-      'bytes'
-    ]
- */
