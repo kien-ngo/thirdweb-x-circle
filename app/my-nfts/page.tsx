@@ -1,12 +1,15 @@
 "use client";
 
-import NftBalance from "@/src/components/NftBalance";
+import { TGeneratedWallet } from "@/pages/api/webhook_userCreated";
 import { useCircleWallet } from "@/src/components/WalletProvider";
 import { CONTRACT_ADDRESS } from "@/src/consts";
 import { truncateEvmAddress } from "@/src/utils/truncateEvmAddress";
+import { SmartContract, useContract, useNFTBalance } from "@thirdweb-dev/react";
+import { BaseContract } from "ethers";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
+// Also hard-coded for demo
 const tokens = [
   {
     tokenId: 0,
@@ -22,12 +25,18 @@ const tokens = [
     hover: "border-green-200",
     name: "Circle x thirdweb Edition Drop",
   },
-];
+] as const;
 
 export default function Page() {
   const { wallet } = useCircleWallet();
   if (!wallet)
     return <div className="text-center">Error: Wallet not found</div>;
+  const { contract, isLoading } = useContract(CONTRACT_ADDRESS);
+  if (isLoading)
+    return <div className="text-center">Loading collection ...</div>;
+  if (!contract)
+    return <div className="text-center">Error loading collection</div>;
+
   return (
     <>
       <div className="mt-10 text-center">
@@ -44,52 +53,79 @@ export default function Page() {
       </div>
 
       {tokens.map((item) => (
-        <div
+        <Component
           key={item.tokenId}
-          className="flex flex-row flex-wrap justify-center gap-6 mt-10"
-        >
-          <div
-            className={`border flex w-[330px] h-[224px] rounded-lg ${item.shadow}`}
-          >
-            <img
-              key={item.tokenId}
-              src={item.image}
-              className="object-contain h-[200px] w-auto m-auto"
-              alt=""
-            />
-          </div>
-          <div>
-            <div>
-              <span className="text-gray-500">Name</span>:{" "}
-              <b className="text-lg">{item.name}</b>
-            </div>
-            <div>
-              <span className="text-gray-500">Contract address: </span>
-              <button
-                className="underline"
-                onClick={async () => {
-                  await window.navigator.clipboard.writeText(CONTRACT_ADDRESS);
-                  toast("Contract address copied");
-                }}
-              >
-                {truncateEvmAddress(CONTRACT_ADDRESS)}
-              </button>
-            </div>
-            <div>
-              <span className="text-gray-500">Edition ID: </span>#{item.tokenId}
-            </div>
-            <div>
-              You own:{" "}
-              <b className="text-green-500 text-lg">
-                <NftBalance
-                  walletAddress={wallet.address}
-                  tokenId={item.tokenId}
-                />
-              </b>
-            </div>
-          </div>
-        </div>
+          wallet={wallet}
+          token={item}
+          contract={contract}
+        />
       ))}
     </>
   );
 }
+
+const Component = ({
+  token,
+  wallet,
+  contract,
+}: {
+  token: (typeof tokens)[number];
+  wallet: TGeneratedWallet;
+  contract: SmartContract<BaseContract>;
+}) => {
+  const { data, isLoading, error } = useNFTBalance(
+    contract,
+    wallet.address,
+    token.tokenId
+  );
+  const nftBalance = data ? `${data.toString()}` : "";
+  return (
+    <div
+      key={token.tokenId}
+      className="flex flex-row flex-wrap justify-center gap-6 mt-10"
+    >
+      <div
+        className={`border flex w-[330px] h-[224px] rounded-lg ${token.shadow}`}
+      >
+        <img
+          key={token.tokenId}
+          src={token.image}
+          className="object-contain h-[200px] w-auto m-auto"
+          alt=""
+        />
+      </div>
+      <div>
+        <div>
+          <span className="text-gray-500">Name</span>:{" "}
+          <b className="text-lg">{token.name}</b>
+        </div>
+        <div>
+          <span className="text-gray-500">Contract address: </span>
+          <button
+            className="underline"
+            onClick={async () => {
+              await window.navigator.clipboard.writeText(CONTRACT_ADDRESS);
+              toast("Contract address copied");
+            }}
+          >
+            {truncateEvmAddress(CONTRACT_ADDRESS)}
+          </button>
+        </div>
+        <div>
+          <span className="text-gray-500">Edition ID: </span>#{token.tokenId}
+        </div>
+        <div>
+          You own:{" "}
+          <b className="text-green-500 text-lg">
+            {isLoading ? <>Loading...</> : nftBalance}
+          </b>
+        </div>
+        {nftBalance && (
+          <button className="border rounded-full px-6 py-2 border-gray-500 mt-4">
+            Transfer
+          </button>
+        )}
+      </div>
+    </div>
+  );
+};

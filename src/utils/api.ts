@@ -37,19 +37,29 @@ export const getIdempotencyKey = async () => {
   return uuid;
 };
 
-/**
- * This is currently used to fetch a list of wallets from Circle DB and use the list
- * to filter out the user's wallet based on their user ID (provided from the Auth provider, in this case, Supabase)
- *
- * Calling this endpoint is not efficient
- * Ideally we would need a way to get a wallet based on refId, but seems like Circle doesn't have such endpoint atm
- * Other solution is to keep a separate record of that in the database (Supabase, for example)
- * but it is not as clean as using the mentioned endpoint - Supabase should just be used for Auth, this
- * way you can use the app for any auth provider
- */
-export const getWallets = async () => {
+// export const getWallets = async (): Promise<TGeneratedWallet[]> => {
+//   const data = await fetch(
+//     `${CIRCLE_BASE_API_URL}/wallets?blockchain=AVAX-FUJI&walletSetId=${process.env.WALLET_SET_ID}&pageSize=50`,
+//     {
+//       method: "GET",
+//       headers: {
+//         accept: "application/json",
+//         authorization: AUTH_STRING,
+//       },
+//     }
+//   )
+//     .then((r) => r.json())
+//     .catch((err) => console.log(err));
+//   const wallets: TGeneratedWallet[] = data.data.wallets ?? [];
+//   return wallets;
+// };
+
+export const getWalletFromRefId = async (
+  refId: string
+): Promise<TGeneratedWallet | undefined> => {
+  if (!refId) return undefined;
   const data = await fetch(
-    `${CIRCLE_BASE_API_URL}/wallets?blockchain=AVAX-FUJI&walletSetId=${process.env.WALLET_SET_ID}&pageSize=50`,
+    `${CIRCLE_BASE_API_URL}/wallets?blockchain=AVAX-FUJI&walletSetId=${process.env.WALLET_SET_ID}&pageSize=1&refId=${refId}`,
     {
       method: "GET",
       headers: {
@@ -60,8 +70,8 @@ export const getWallets = async () => {
   )
     .then((r) => r.json())
     .catch((err) => console.log(err));
-  const wallets: TGeneratedWallet[] = data.data.wallets;
-  return wallets;
+  const wallets: TGeneratedWallet[] = data.data.wallets ?? [];
+  return wallets[0] || undefined;
 };
 
 export const getTransaction = async (
@@ -83,4 +93,42 @@ export const getTransaction = async (
     .catch((err) => console.log(err));
   const transaction = data.data.transaction;
   return transaction;
+};
+
+export const executeContract = async (
+  functionSignature: string,
+  contractAddress: string,
+  walletId: string,
+  abiParameters: Array<
+    string | number | string[] | number[] | Array<string | number>
+  >,
+  feeLevel: "HIGH" | "MEDIUM" | "LOW"
+) => {
+  const [entitySecretCipherText, idempotencyKey] = await Promise.all([
+    getEntitySecretCipherText(),
+    getIdempotencyKey(),
+  ]);
+  const data = await fetch(
+    "https://api.circle.com/v1/w3s/developer/transactions/contractExecution",
+    {
+      method: "POST",
+      headers: {
+        accept: "application/json",
+        "content-type": "application/json",
+        authorization: AUTH_STRING,
+      },
+      body: JSON.stringify({
+        feeLevel: feeLevel,
+        abiParameters: abiParameters,
+        abiFunctionSignature: functionSignature,
+        contractAddress: contractAddress,
+        entitySecretCipherText,
+        walletId: walletId,
+        idempotencyKey,
+      }),
+    }
+  )
+    .then((r) => r.json())
+    .catch((err) => console.log(err));
+  return data;
 };
